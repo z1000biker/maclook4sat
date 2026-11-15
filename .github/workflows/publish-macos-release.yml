@@ -6,11 +6,11 @@ on:
       build_run_id:
         description: Successful macOS build workflow run ID
         required: true
-        default: '43763430428'
+        default: '43769376693'
       release_tag:
-        description: Existing GitHub Release tag
+        description: Existing or new GitHub prerelease tag
         required: true
-        default: 'v4.4.9-macos-poc'
+        default: 'v4.4.9-macos-compass-poc'
   push:
     branches: [main]
     paths:
@@ -28,12 +28,22 @@ jobs:
     if: github.repository == 'z1000biker/maclook4sat'
     env:
       GH_TOKEN: ${{ github.token }}
-      BUILD_RUN_ID: ${{ inputs.build_run_id || '43763430428' }}
-      RELEASE_TAG: ${{ inputs.release_tag || 'v4.4.9-macos-poc' }}
+      BUILD_RUN_ID: ${{ inputs.build_run_id || '43769376693' }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'v4.4.9-macos-compass-poc' }}
     steps:
-      - name: Verify existing release
+      - name: Wait for successful Intel and Apple Silicon compilation
         shell: bash
-        run: gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+        run: gh run watch "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status --interval 10
+
+      - name: Create an experimental prerelease when missing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+              --title "Look4Sat 4.4.9 - Optional Compass preview (Intel + Apple Silicon)" \
+              --notes "Experimental macOS port with optional external Serial/TCP Compass. Sensor input is disabled by default. CSV/JSON data, offsets, declination and stale-data fallback are implemented. **UNTESTED ON REAL COMPASS HARDWARE AND MAC DEVICES.** The prior north-up-only release remains available separately."
+          fi
 
       - name: Download successful Intel build artifact
         shell: bash
@@ -58,29 +68,29 @@ jobs:
           test -n "$arm64_file"
           unzip -tq "$intel_file"
           unzip -tq "$arm64_file"
-          cp "$intel_file" publish/Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip
-          cp "$arm64_file" publish/Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip
+          cp "$intel_file" publish/Look4Sat-Mac-4.4.9-Compass-Intel-CI-UNTESTED.zip
+          cp "$arm64_file" publish/Look4Sat-Mac-4.4.9-Compass-AppleSilicon-CI-UNTESTED.zip
           sha256sum publish/*.zip
 
-      - name: Upload both builds to existing GitHub Release
+      - name: Upload Compass builds to GitHub prerelease
         shell: bash
         run: |
           gh release upload "$RELEASE_TAG" publish/*.zip --repo "$GITHUB_REPOSITORY" --clobber
-          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip'
-          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip'
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'Look4Sat-Mac-4.4.9-Compass-Intel-CI-UNTESTED.zip'
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'Look4Sat-Mac-4.4.9-Compass-AppleSilicon-CI-UNTESTED.zip'
 
       - name: Add conspicuous untested warning to release notes
         shell: bash
         run: |
           set -euo pipefail
           gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body --jq '.body' > release-notes.md
-          if ! grep -Fq 'Experimental CI builds - 15 November 2026' release-notes.md; then
+          if ! grep -Fq 'Experimental Compass builds - 16 November 2026' release-notes.md; then
             {
               printf '\n\n## Experimental CI builds - 15 November 2026\n\n'
-              printf '%s\n' '- Added **Intel x86_64** and **Apple Silicon ARM64** app ZIP archives, built by GitHub Actions.'
-              printf '%s\n' '- **UNTESTED ON REAL MAC HARDWARE.** The Apple Silicon build has **not** been tested on an Apple Silicon Mac. The new Intel CI build also has **not** been independently tested on a real Mac.'
+              printf '%s\n' '- Added **Intel x86_64** and **Apple Silicon ARM64** Compass-preview app ZIP archives, built by GitHub Actions from the updated source.'
+              printf '%s\n' '- **UNTESTED ON REAL MAC OR COMPASS HARDWARE.** Both new builds remain experimental. The optional external Compass (Serial/TCP CSV/JSON, calibration, radar rotation and stale-data fallback) has not been hardware-validated.'
               printf '%s\n' '- Successful compilation, offline checks and ad-hoc signing do **not** establish real-world runtime correctness, device compatibility, or accurate satellite tracking.'
-              printf '%s\n' '- The existing earlier Intel ZIP and full source ZIP remain available.'
+              printf '%s\n' '- The previous north-up-only release is kept separately. The optional Compass is disabled by default.'
               printf '\n'
             } >> release-notes.md
             gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --notes-file release-notes.md
