@@ -8,6 +8,19 @@ Based on [Look4Sat 4.4.9 by rt-bishop](https://github.com/rt-bishop/Look4Sat). T
 
 *Look4Sat-Mac PoC running on Intel macOS (screenshot from 15 November 2026). The screenshot demonstrates the application UI, not full functional or stability validation.*
 
+## Automated builds: Intel and Apple Silicon
+
+[GitHub Actions build #1](https://github.com/z1000biker/maclook4sat/actions/runs/43763430428) completed successfully on **15 November 2026** using Java 21 and Gradle 9.8.1. The workflow compiled and packaged two architecture-specific macOS application bundles:
+
+| Runner | CPU architecture | CI result | Download |
+| --- | --- | --- | --- |
+| `macos-15-intel` | Intel `x86_64` | Build, offline verification and artifact upload passed | `Look4Sat-Mac-Intel` under [run artifacts](https://github.com/z1000biker/maclook4sat/actions/runs/43763430428) |
+| `macos-15` | Apple Silicon `arm64` | Build, offline verification and artifact upload passed | `Look4Sat-Mac-AppleSilicon` under [run artifacts](https://github.com/z1000biker/maclook4sat/actions/runs/43763430428) |
+
+**The Apple Silicon version has NOT been tested on an actual Apple Silicon Mac.** Successful compilation, offline regression checks, ad-hoc code signing and packaging do not establish correct runtime behavior, device compatibility or satellite-tracking accuracy. The new CI-generated Intel artifact has also not undergone independent hands-on validation. Both artifacts are experimental.
+
+GitHub Actions artifacts expire after 30 days. You can build them again through **Actions → Build macOS (Intel and Apple Silicon) → Run workflow**. This workflow does not automatically update the public GitHub Release.
+
 > [!WARNING]
 > **Development proof of concept — not production-ready.** The app has launched on an Intel Mac, but complete feature parity and stability have **not** been established. A system restart was reported while testing an earlier satellite switch. Use at your own risk and save other work before testing.
 
@@ -52,10 +65,10 @@ The orbit calculation code is derived from the original Look4Sat engine. The mac
 
 ## Build from source
 
-Download and extract `Look4Sat-Mac-4.4.9-source.zip`. On a Mac with **JDK 21** installed, from the extracted root:
+Clone this repository or download and extract `Look4Sat-Mac-4.4.9-source.zip`. On a Mac with **JDK 21** installed, from the repository directory or extracted source directory:
 
 ```bash
-cd Look4Sat-4.4.9/desktop-macos
+cd desktop-macos
 ./gradlew verifyDesktop
 ./gradlew run
 ./gradlew packageMac
