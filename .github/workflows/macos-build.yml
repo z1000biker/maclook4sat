@@ -1,0 +1,80 @@
+name: Build macOS (Intel and Apple Silicon)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/macos-build.yml'
+      - 'desktop-macos/**'
+      - 'core/domain/**'
+      - 'core/data/src/main/java/com/rtbishop/look4sat/core/data/framework/**'
+      - 'gradle/wrapper/**'
+      - 'gradlew'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            label: Intel x86_64
+            arch: x86_64
+            artifact: Look4Sat-Mac-Intel
+          - runner: macos-15
+            label: Apple Silicon arm64
+            arch: arm64
+            artifact: Look4Sat-Mac-AppleSilicon
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Confirm runner and JDK architecture
+        shell: bash
+        run: |
+          echo "Host architecture: $(uname -m)"
+          java -version
+          test "$(uname -m)" = '${{ matrix.arch }}'
+
+      - name: Verify orbital calculations and input parsing
+        run: |
+          chmod +x gradlew desktop-macos/gradlew
+          ./gradlew -p desktop-macos verifyDesktop --stacktrace
+
+      - name: Build the macOS application
+        run: ./gradlew -p desktop-macos packageMac --stacktrace
+
+      - name: Check packaged launcher architecture
+        run: |
+          file desktop-macos/build/macos/Look4Sat-Mac.app/Contents/MacOS/Look4Sat-Mac
+          file desktop-macos/build/macos/Look4Sat-Mac.app/Contents/runtime/Contents/Home/bin/java
+          codesign --verify --deep desktop-macos/build/macos/Look4Sat-Mac.app
+
+      - name: Archive the .app bundle
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            desktop-macos/build/macos/Look4Sat-Mac.app \
+            '${{ matrix.artifact }}.zip'
+          shasum -a 256 '${{ matrix.artifact }}.zip'
+
+      - name: Upload downloadable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.zip
+          if-no-files-found: error
+          retention-days: 30
