@@ -6,46 +6,35 @@ Based on [Look4Sat 4.4.9 by rt-bishop](https://github.com/rt-bishop/Look4Sat). T
 
 ![Look4Sat-Mac proof of concept running on Intel macOS — radar, satellite list and pass predictions](Look4Sat-Mac-PoC.png)
 
-*Look4Sat-Mac PoC running on Intel macOS (screenshot from 15 November 2026). The screenshot demonstrates the application UI, not full functional or stability validation.*
+*Look4Sat-Mac PoC running on Intel macOS (screenshot from 15 November 2026, before the optional external Compass tab). This demonstrates the application UI, not full functional or stability validation.*
 
-## Automated builds: Intel and Apple Silicon
+## Current preview: optional external Compass (Intel and Apple Silicon)
 
-[GitHub Actions build #1](https://github.com/z1000biker/maclook4sat/actions/runs/43763430428) completed successfully on **15 November 2026** using Java 21 and Gradle 9.8.1. The workflow compiled and packaged two architecture-specific macOS application bundles:
+The [optional Compass preview release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-compass-poc) includes freshly compiled **Intel x86_64** and **Apple Silicon arm64** application archives. Both macOS GitHub Actions jobs passed source compilation, desktop offline verification (including compass parsing and TCP loopback), and app packaging in [build run #43769376693](https://github.com/z1000biker/maclook4sat/actions/runs/43769376693).
 
-| Runner | CPU architecture | CI result | Download |
-| --- | --- | --- | --- |
-| `macos-15-intel` | Intel `x86_64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-poc/Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip) in the Release |
-| `macos-15` | Apple Silicon `arm64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-poc/Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip) in the Release |
+| Platform | Compass preview download | Verification |
+| --- | --- | --- |
+| Intel Mac (`x86_64`) | [Compass Intel CI ZIP](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-compass-poc/Look4Sat-Mac-4.4.9-Compass-Intel-CI-UNTESTED.zip) | Compilation and offline checks passed; **not tested on real Mac or compass hardware** |
+| Apple Silicon Mac (`arm64`) | [Compass Apple Silicon CI ZIP](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-compass-poc/Look4Sat-Mac-4.4.9-Compass-AppleSilicon-CI-UNTESTED.zip) | Compilation and offline checks passed; **not tested on real Apple Silicon Mac or compass hardware** |
+| Intel user-packaged build (`x86_64`) | [Compass Intel user build ZIP](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-compass-poc/Look4Sat-Mac-4.4.9-Compass-Intel-user-build-UNTESTED.zip) | Supplied macOS app archive; **not independently tested** |
+| Full source archive | [Compass full source ZIP](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-compass-poc/Look4Sat-Mac-4.4.9-Compass-full-source.zip) | Original Look4Sat 4.4.9 source tree plus the macOS Compass additions and packaging fix |
 
-**The Apple Silicon version has NOT been tested on an actual Apple Silicon Mac.** Successful compilation, offline regression checks, ad-hoc code signing and packaging do not establish correct runtime behavior, device compatibility or satellite-tracking accuracy. The new CI-generated Intel artifact has also not undergone independent hands-on validation. Both artifacts are experimental.
-
-**Both experimental CI builds are attached to the [v4.4.9 macOS PoC Release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc)** alongside the earlier Intel ZIP and full source archive. The artifacts on the Actions run page expire after 30 days; the copies in the Release are not tied to artifact retention. Rebuild through **Actions → Build macOS (Intel and Apple Silicon) → Run workflow**. Publishing a new build to a Release is a separate operation via **Actions → Publish experimental macOS builds to Release → Run workflow**.
+**UNTESTED PREVIEW:** GitHub Actions success demonstrates compilation and automated checks, not real-world execution, serial/Bluetooth connectivity, antenna pointing accuracy, or overall stability. The earlier [non-Compass PoC release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc) is retained separately. The original desktop PoC was shown running on an Intel Mac; the new Compass feature has **not** been tested with real sensor hardware.
 
 > [!WARNING]
 > **Development proof of concept — not production-ready.** The app has launched on an Intel Mac, but complete feature parity and stability have **not** been established. A system restart was reported while testing an earlier satellite switch. Use at your own risk and save other work before testing.
 
-## Download
+## Download and install
 
-See the [Releases page](https://github.com/z1000biker/maclook4sat/releases) for the current pre-release and its files:
+Get the latest experimental Compass build from the [Compass prerelease](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-compass-poc). Select the archive that matches your Mac’s processor. The older [v4.4.9 macOS PoC release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc) remains available for comparison, including its earlier Intel and Apple Silicon CI builds and source.
 
-| File | Contents |
-| --- | --- |
-| `Look4Sat-Mac-4.4.9-Intel.zip` | Original Intel macOS application bundle with bundled Java runtime (earlier PoC) |
-| `Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip` | Fresh GitHub Actions Intel `x86_64` build; **not independently tested on a real Mac** |
-| `Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip` | GitHub Actions Apple Silicon `arm64` build; **not tested on a real Apple Silicon Mac** |
-| `Look4Sat-Mac-4.4.9-source.zip` | Full corresponding source archive: original Look4Sat modules plus `desktop-macos/` |
-| `Look4Sat-Mac.zip` (if available) | Alternative ZIP of the same application bundle, exported from macOS Finder |
+1. Download the appropriate Intel or Apple Silicon ZIP from the Compass prerelease.
+2. Unzip it and optionally move `Look4Sat-Mac.app` into `/Applications`.
+3. Launch the application through Finder. If macOS blocks an unnotarized app, verify its source before considering **Privacy & Security → Open Anyway**.
+4. Enter your observer latitude, longitude and altitude, then download orbital data or import TLE/OMM files.
+5. To use a separate orientation sensor, open the optional **Compass** tab and configure the transport, data format and mounting corrections. Compass is **disabled by default**.
 
-**There is no need to install Java separately to launch the packaged application.** The ZIP contains `Look4Sat-Mac.app/Contents/runtime/`.
-
-## Install on macOS
-
-1. Download a ZIP for **your CPU architecture** from the [v4.4.9 Release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc): `Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip` for M-series Macs; `Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip` or the earlier `Look4Sat-Mac-4.4.9-Intel.zip` for Intel Macs.
-2. Extract the ZIP and move `Look4Sat-Mac.app` to `/Applications`, if desired.
-3. Open `Look4Sat-Mac.app` from Finder. On systems that block unnotarized apps, inspect the app's origin first and use the normal macOS **Privacy & Security → Open Anyway** control only if you trust this experimental build.
-4. Enter your station latitude, longitude and altitude. Download orbital data or import TLE/OMM files, then select a satellite.
-
-The application is **not Apple-notarized**. Both Intel (`x86_64`) and Apple Silicon (`arm64`) ZIP archives are available in the Release. **Neither new CI-generated archive has been independently tested on real Mac hardware; Apple Silicon runtime support has not been verified.** Hardware integration and permissions depend on your macOS configuration.
+The packaged app contains its own Java runtime (`Contents/runtime/`); users do not need a separate Java installation merely to launch it. The builds are **ad-hoc signed, not Apple Developer ID signed or Apple-notarized**. Real Mac runtime support and external sensor connectivity remain unverified for these new builds.
 
 ## What is implemented?
 
@@ -53,7 +42,8 @@ The desktop PoC presents the following areas. A visible tab does **not** imply t
 
 | Area | Current status |
 | --- | --- |
-| Radar / satellite position | North-up radar UI demonstrated on Intel macOS; **no sensor-based pointing** |
+| Radar / satellite position | North-up by default; experimental radar rotation and pointing guidance when a fresh **external** Compass reading is available |
+| External Compass (optional) | Serial or TCP CSV/JSON heading/tilt stream; mounting offsets, magnetic declination, inversion and stale-data fallback; **not tested with real hardware** |
 | Satellite list and NORAD selection | UI demonstrated; repeat satellite-switch stability not established |
 | Pass predictions / upcoming passes | UI demonstrated; further accuracy testing needed |
 | Map and ground track | Implemented as experimental desktop UI |
@@ -66,25 +56,26 @@ The desktop PoC presents the following areas. A visible tab does **not** imply t
 
 The orbit calculation code is derived from the original Look4Sat engine. The macOS user interface is a separate Kotlin/JVM desktop implementation, rather than the original Android interface running natively.
 
-## Radar orientation and manual antenna pointing
+## Compass, radar orientation and manual antenna pointing
 
-**The current macOS port does not use an accelerometer, electronic compass or other orientation sensor.** Its radar is fixed **north-up** (N at the top, E on the right, S at the bottom, W on the left). Rotating or tilting the Mac does **not** rotate the radar or turn it into a physical antenna-pointing guide.
+**The Mac does not use its own accelerometer or electronic compass for pointing.** The radar remains north-up unless the user explicitly enables the new external **Compass** tab and sends it valid, recent orientation readings from a separate sensor or controller. Rotating or tilting the Mac itself does **not** change the radar. The phone-style Android orientation-sensor experience has not been ported.
 
-The original Android app can use the phone's rotation-vector sensor for orientation-assisted pointing. **That phone-style compass/tilt feature has not been ported to macOS.** An accelerometer alone can help measure tilt relative to gravity but cannot establish north; heading requires another reference such as a magnetic compass.
+The optional external Compass tab accepts **one reading per line** over a macOS serial device such as `/dev/cu.usbserial*` or a **TCP connection** to a configured host and port. Choose CSV or JSON, select the heading field and optionally the pitch/tilt field, then apply the settings to connect. For example:
 
-This experimental desktop port provides or exposes the following tracking functions, subject to the testing limitations above:
+```text
+CSV: 123.4,15.0
+JSON: {"heading":123.4,"pitch":15.0}
+```
 
-- Predict satellite passes for an entered observer location.
-- Display satellite azimuth, elevation, position and ground tracks.
-- Calculate receive-frequency Doppler corrections.
-- Provide **experimental** CAT commands for supported radio models; connection and real-radio behavior have not been independently verified.
-- Provide an **experimental** SSTV audio decoder; practical audio-device and decoding performance have not been verified.
+CSV columns are numbered from 1; JSON fields are configurable by name (defaults `heading` and `pitch`). Heading and tilt are in degrees, with **positive pitch upward**. If your sensor measures magnetic heading, enter the local **magnetic declination** (east positive) to convert to true heading; set declination to zero if your source already reports true heading. There are also corrections for the sensor’s mounting-heading offset and pitch offset, plus a pitch-inversion checkbox. If tilt is unavailable, leave its field blank and use heading-only input.
 
-**Rotator control is not currently implemented on macOS.** For manual antenna pointing, read the displayed **azimuth** and **elevation**, then use a separate compass and an elevation scale/inclinometer; account for local magnetic declination if your compass indicates magnetic rather than true north. Treat the software as a satellite-tracking and experimental radio-control station, **not a sensor-driven phone compass or a validated automatic antenna-pointing system**.
+When valid live sensor data arrives, the radar rotates and the interface displays pointing guidance relative to the selected satellite. If Compass is disabled, disconnected or the input becomes stale, the display safely returns to **north-up**. The new input parser and TCP loopback behavior passed automated tests, but **real serial devices, external electronic compasses, physical mounting calibration and antenna-pointing accuracy have not yet been tested**. TCP data is not inherently authenticated or encrypted; use a trusted local network, not an exposed internet port.
+
+For manual antenna pointing without external orientation data, use the displayed satellite **azimuth and elevation** with a separate compass and elevation scale/inclinometer. An accelerometer by itself measures tilt relative to gravity but cannot determine north. The satellite pass predictions, ground tracks, receive-frequency Doppler estimates, experimental CAT radio support and SSTV interface remain available independently of this Compass option. **Automated rotator control has not been implemented or verified in this macOS port.**
 
 ## Build from source
 
-Clone this repository or download and extract `Look4Sat-Mac-4.4.9-source.zip`. On a Mac with **JDK 21** installed, from the repository directory or extracted source directory:
+Clone this repository (recommended for the latest Compass source) or download the [full Compass source archive](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-compass-poc/Look4Sat-Mac-4.4.9-Compass-full-source.zip). On a Mac with **JDK 21** installed, from the repository directory or extracted source directory:
 
 ```bash
 cd desktop-macos
@@ -101,7 +92,7 @@ The desktop Gradle project uses Kotlin/JVM 2.4.21 and JDK 21. It reuses portions
 
 - Treat unexpected crashes, incorrect pass data, satellite-switching issues and USB/serial device problems as possible.
 - The ZIP archives passed integrity checks, but passing a ZIP integrity check does **not** certify application stability.
-- When reporting a problem, include macOS version, Intel Mac model, selected satellite/NORAD ID, action sequence and relevant app logs—without passwords or tokens.
+- When reporting a problem, include macOS version, Mac CPU architecture, selected satellite/NORAD ID, action sequence and relevant app logs. For Compass issues, describe serial/TCP transport, sensor output example and calibration values—without passwords or tokens.
 - Report issues in [GitHub Issues](https://github.com/z1000biker/maclook4sat/issues).
 
 ## Credits and license
