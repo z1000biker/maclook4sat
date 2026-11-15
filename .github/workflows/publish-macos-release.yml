@@ -1,0 +1,87 @@
+name: Publish experimental macOS builds to Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful macOS build workflow run ID
+        required: true
+        default: '43763430428'
+      release_tag:
+        description: Existing GitHub Release tag
+        required: true
+        default: 'v4.4.9-macos-poc'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-macos-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    name: Promote Intel and Apple Silicon artifacts to Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.repository == 'z1000biker/maclook4sat'
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BUILD_RUN_ID: ${{ inputs.build_run_id || '43763430428' }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'v4.4.9-macos-poc' }}
+    steps:
+      - name: Verify existing release
+        shell: bash
+        run: gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+
+      - name: Download successful Intel build artifact
+        shell: bash
+        run: |
+          mkdir -p downloaded/intel
+          gh run download "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" --name Look4Sat-Mac-Intel --dir downloaded/intel
+
+      - name: Download successful Apple Silicon build artifact
+        shell: bash
+        run: |
+          mkdir -p downloaded/arm64
+          gh run download "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" --name Look4Sat-Mac-AppleSilicon --dir downloaded/arm64
+
+      - name: Validate archives and prepare clearly labeled release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p publish
+          intel_file="$(find downloaded/intel -maxdepth 2 -type f -name '*.zip' -print -quit)"
+          arm64_file="$(find downloaded/arm64 -maxdepth 2 -type f -name '*.zip' -print -quit)"
+          test -n "$intel_file"
+          test -n "$arm64_file"
+          unzip -tq "$intel_file"
+          unzip -tq "$arm64_file"
+          cp "$intel_file" publish/Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip
+          cp "$arm64_file" publish/Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip
+          sha256sum publish/*.zip
+
+      - name: Upload both builds to existing GitHub Release
+        shell: bash
+        run: |
+          gh release upload "$RELEASE_TAG" publish/*.zip --repo "$GITHUB_REPOSITORY" --clobber
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip'
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip'
+
+      - name: Add conspicuous untested warning to release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body --jq '.body' > release-notes.md
+          if ! grep -Fq 'Experimental CI builds - 15 November 2026' release-notes.md; then
+            {
+              printf '\n\n## Experimental CI builds - 15 November 2026\n\n'
+              printf '%s\n' '- Added **Intel x86_64** and **Apple Silicon ARM64** app ZIP archives, built by GitHub Actions.'
+              printf '%s\n' '- **UNTESTED ON REAL MAC HARDWARE.** The Apple Silicon build has **not** been tested on an Apple Silicon Mac. The new Intel CI build also has **not** been independently tested on a real Mac.'
+              printf '%s\n' '- Successful compilation, offline checks and ad-hoc signing do **not** establish real-world runtime correctness, device compatibility, or accurate satellite tracking.'
+              printf '%s\n' '- The existing earlier Intel ZIP and full source ZIP remain available.'
+              printf '\n'
+            } >> release-notes.md
+            gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --notes-file release-notes.md
+          fi
