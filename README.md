@@ -53,17 +53,34 @@ The desktop PoC presents the following areas. A visible tab does **not** imply t
 
 | Area | Current status |
 | --- | --- |
-| Radar / satellite position | UI demonstrated on Intel macOS |
+| Radar / satellite position | North-up radar UI demonstrated on Intel macOS; **no sensor-based pointing** |
 | Satellite list and NORAD selection | UI demonstrated; repeat satellite-switch stability not established |
 | Pass predictions / upcoming passes | UI demonstrated; further accuracy testing needed |
 | Map and ground track | Implemented as experimental desktop UI |
 | Status and station settings | Implemented as experimental desktop UI |
 | SSTV | Experimental audio/decoder integration; device testing incomplete |
 | Transceivers / CAT control | Experimental; real-radio testing incomplete |
+| Rotator control | **Not implemented in the current macOS port**; do not assume Android rotator integration is available |
 | Remote control | Experimental; not independently validated |
 | SatNOGS / AMSAT status | Experimental; network data and feature coverage need verification |
 
 The orbit calculation code is derived from the original Look4Sat engine. The macOS user interface is a separate Kotlin/JVM desktop implementation, rather than the original Android interface running natively.
+
+## Radar orientation and manual antenna pointing
+
+**The current macOS port does not use an accelerometer, electronic compass or other orientation sensor.** Its radar is fixed **north-up** (N at the top, E on the right, S at the bottom, W on the left). Rotating or tilting the Mac does **not** rotate the radar or turn it into a physical antenna-pointing guide.
+
+The original Android app can use the phone's rotation-vector sensor for orientation-assisted pointing. **That phone-style compass/tilt feature has not been ported to macOS.** An accelerometer alone can help measure tilt relative to gravity but cannot establish north; heading requires another reference such as a magnetic compass.
+
+This experimental desktop port provides or exposes the following tracking functions, subject to the testing limitations above:
+
+- Predict satellite passes for an entered observer location.
+- Display satellite azimuth, elevation, position and ground tracks.
+- Calculate receive-frequency Doppler corrections.
+- Provide **experimental** CAT commands for supported radio models; connection and real-radio behavior have not been independently verified.
+- Provide an **experimental** SSTV audio decoder; practical audio-device and decoding performance have not been verified.
+
+**Rotator control is not currently implemented on macOS.** For manual antenna pointing, read the displayed **azimuth** and **elevation**, then use a separate compass and an elevation scale/inclinometer; account for local magnetic declination if your compass indicates magnetic rather than true north. Treat the software as a satellite-tracking and experimental radio-control station, **not a sensor-driven phone compass or a validated automatic antenna-pointing system**.
 
 ## Build from source
 
