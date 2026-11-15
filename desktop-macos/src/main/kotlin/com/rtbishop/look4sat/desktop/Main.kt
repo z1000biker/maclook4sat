@@ -192,6 +192,8 @@ internal fun predictPasses(data: OrbitalData, station: GeoPos, from: Long, days:
 }
 
 internal class Radar : JPanel() {
+    var orientation: CompassReading? = null
+        set(value) { field = value; repaint() }
     var path: List<OrbitalPos> = emptyList()
         set(value) { field = value; repaint() }
     var position: OrbitalPos? = null
@@ -201,7 +203,9 @@ internal class Radar : JPanel() {
         super.paintComponent(g)
         val canvas = g.create() as Graphics2D
         canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        val r = minOf(width, height) / 2 - 30
+        val r = (minOf(width, height) / 2 - 50).coerceAtLeast(1)
+        val heading = orientation?.heading ?: 0.0
+        fun angle(radians: Double) = radians - Math.toRadians(heading)
         val cx = width / 2
         val cy = height / 2
         canvas.color = Color(65, 100, 125)
@@ -209,25 +213,42 @@ internal class Radar : JPanel() {
         canvas.drawLine(cx - r, cy, cx + r, cy)
         canvas.drawLine(cx, cy - r, cx, cy + r)
         canvas.color = foreground
-        canvas.drawString("N", cx - 5, cy - r - 9)
-        canvas.drawString("E", cx + r + 8, cy + 5)
-        canvas.drawString("S", cx - 5, cy + r + 19)
-        canvas.drawString("W", cx - r - 18, cy + 5)
+        listOf("N" to 0.0, "E" to 90.0, "S" to 180.0, "W" to 270.0).forEach { (label, degrees) ->
+            val az = angle(Math.toRadians(degrees))
+            canvas.drawString(label, cx + (sin(az) * (r + 15)).toInt() - 5, cy - (cos(az) * (r + 15)).toInt() + 5)
+        }
         canvas.color = Color(220, 170, 60)
         var previous: Point? = null
         path.filter { it.elevation >= 0 }.forEach {
             val distance = (1 - it.elevation * 180 / PI / 90) * r
-            val point = Point(cx + (sin(it.azimuth) * distance).toInt(), cy - (cos(it.azimuth) * distance).toInt())
+            val point = Point(cx + (sin(angle(it.azimuth)) * distance).toInt(), cy - (cos(angle(it.azimuth)) * distance).toInt())
             previous?.let { old -> canvas.drawLine(old.x, old.y, point.x, point.y) }
             previous = point
         }
         position?.let {
             val distance = ((90.0 - it.elevation * 180 / PI) / 90.0).coerceIn(0.0, 1.0) * r
-            val az = it.azimuth
+            val az = angle(it.azimuth)
             val x = cx + (sin(az) * distance).toInt()
             val y = cy - (cos(az) * distance).toInt()
             canvas.color = if (it.elevation >= 0) Color(35, 175, 100) else Color(180, 105, 75)
             canvas.fillOval(x - 7, y - 7, 14, 14)
+        }
+        orientation?.let { reading ->
+            canvas.color = Color(70, 160, 255)
+            val pointerY = cy - (((90 - (reading.pitch ?: 0.0)) / 90).coerceIn(0.0, 1.0) * r).toInt()
+            canvas.drawLine(cx - 9, pointerY, cx + 9, pointerY)
+            canvas.drawLine(cx, pointerY - 9, cx, pointerY + 9)
+            canvas.drawString("Heading %.1f°%s".format(reading.heading,
+                reading.pitch?.let { " · tilt %.1f°".format(it) } ?: " · heading only"), 10, 18)
+            position?.let { target ->
+                val turn = pointingDifference(Math.toDegrees(target.azimuth), reading.heading)
+                val tilt = reading.pitch?.let { Math.toDegrees(target.elevation) - it }
+                val horizontal = if (kotlin.math.abs(turn) < 1) "Heading aligned" else
+                    "Turn %s %.1f°".format(if (turn > 0) "right" else "left", kotlin.math.abs(turn))
+                val vertical = tilt?.let { if (kotlin.math.abs(it) < 1) " · tilt aligned" else
+                    " · %s %.1f°".format(if (it > 0) "raise" else "lower", kotlin.math.abs(it)) }.orEmpty()
+                canvas.drawString(horizontal + vertical, 10, height - 12)
+            }
         }
         canvas.dispose()
     }
@@ -357,6 +378,7 @@ private class DesktopWindow : JFrame("Look4Sat · macOS") {
     private val autoUpdate = JCheckBox("Refresh weekly on startup", prefs.getBoolean("autoUpdate", false))
     private val amsat = AmsatDesktop()
     private val remote = RemoteDesktop()
+    private val compass = CompassDesktop { radar.orientation = it }
     private var currentPasses = emptyList<Pass>()
     private var passWorker: SwingWorker<List<Pass>, Unit>? = null
     private var trackWorker: SwingWorker<List<Pair<Double, Double>>, Unit>? = null
@@ -437,6 +459,7 @@ private class DesktopWindow : JFrame("Look4Sat · macOS") {
         tabs.addTab("SSTV", sstv)
         tabs.addTab("Transceivers", radio)
         tabs.addTab("Remote control", remote)
+        tabs.addTab("Compass", JScrollPane(compass))
         tabs.addTab("SatNOGS", transmitters)
         tabs.addTab("AMSAT status", amsat)
         val settingPanel = JPanel(GridLayout(0, 2, 12, 12))
@@ -544,6 +567,7 @@ private class DesktopWindow : JFrame("Look4Sat · macOS") {
                 sstv.close()
                 radio.disconnect()
                 remote.close()
+                compass.close()
                 globalPasses.close()
                 prefs.putInt("selected", selected()?.catnum ?: 0)
                 prefs.put("lat", latitude.text)
