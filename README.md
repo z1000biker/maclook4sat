@@ -4,6 +4,10 @@
 
 Based on [Look4Sat 4.4.9 by rt-bishop](https://github.com/rt-bishop/Look4Sat). The original project is free and open source under GPL-3.0. This macOS adaptation is maintained independently by [z1000biker](https://github.com/z1000biker).
 
+![Look4Sat-Mac proof of concept running on Intel macOS — radar, satellite list and pass predictions](Look4Sat-Mac-PoC.png)
+
+*Look4Sat-Mac PoC running on Intel macOS (screenshot from 15 November 2026). The screenshot demonstrates the application UI, not full functional or stability validation.*
+
 > [!WARNING]
 > **Development proof of concept — not production-ready.** The app has launched on an Intel Mac, but complete feature parity and stability have **not** been established. A system restart was reported while testing an earlier satellite switch. Use at your own risk and save other work before testing.
 
