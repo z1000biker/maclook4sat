@@ -1,6 +1,6 @@
 # maclook4sat
 
-**Look4Sat for Intel macOS — an unofficial, experimental desktop port of the Android satellite tracker.**
+**Look4Sat for Intel and Apple Silicon macOS — an unofficial, experimental desktop port of the Android satellite tracker.**
 
 Based on [Look4Sat 4.4.9 by rt-bishop](https://github.com/rt-bishop/Look4Sat). The original project is free and open source under GPL-3.0. This macOS adaptation is maintained independently by [z1000biker](https://github.com/z1000biker).
 
@@ -14,12 +14,12 @@ Based on [Look4Sat 4.4.9 by rt-bishop](https://github.com/rt-bishop/Look4Sat). T
 
 | Runner | CPU architecture | CI result | Download |
 | --- | --- | --- | --- |
-| `macos-15-intel` | Intel `x86_64` | Build, offline verification and artifact upload passed | `Look4Sat-Mac-Intel` under [run artifacts](https://github.com/z1000biker/maclook4sat/actions/runs/43763430428) |
-| `macos-15` | Apple Silicon `arm64` | Build, offline verification and artifact upload passed | `Look4Sat-Mac-AppleSilicon` under [run artifacts](https://github.com/z1000biker/maclook4sat/actions/runs/43763430428) |
+| `macos-15-intel` | Intel `x86_64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc) in the Release |
+| `macos-15` | Apple Silicon `arm64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc) in the Release |
 
 **The Apple Silicon version has NOT been tested on an actual Apple Silicon Mac.** Successful compilation, offline regression checks, ad-hoc code signing and packaging do not establish correct runtime behavior, device compatibility or satellite-tracking accuracy. The new CI-generated Intel artifact has also not undergone independent hands-on validation. Both artifacts are experimental.
 
-GitHub Actions artifacts expire after 30 days. You can build them again through **Actions → Build macOS (Intel and Apple Silicon) → Run workflow**. This workflow does not automatically update the public GitHub Release.
+**Both experimental CI builds are attached to the [v4.4.9 macOS PoC Release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc)** alongside the earlier Intel ZIP and full source archive. The artifacts on the Actions run page expire after 30 days; the copies in the Release are not tied to artifact retention. Rebuild through **Actions → Build macOS (Intel and Apple Silicon) → Run workflow**. Publishing a new build to a Release is a separate operation via **Actions → Publish experimental macOS builds to Release → Run workflow**.
 
 > [!WARNING]
 > **Development proof of concept — not production-ready.** The app has launched on an Intel Mac, but complete feature parity and stability have **not** been established. A system restart was reported while testing an earlier satellite switch. Use at your own risk and save other work before testing.
@@ -30,7 +30,9 @@ See the [Releases page](https://github.com/z1000biker/maclook4sat/releases) for 
 
 | File | Contents |
 | --- | --- |
-| `Look4Sat-Mac-4.4.9-Intel.zip` | Intel macOS application bundle with bundled Java runtime |
+| `Look4Sat-Mac-4.4.9-Intel.zip` | Original Intel macOS application bundle with bundled Java runtime (earlier PoC) |
+| `Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip` | Fresh GitHub Actions Intel `x86_64` build; **not independently tested on a real Mac** |
+| `Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip` | GitHub Actions Apple Silicon `arm64` build; **not tested on a real Apple Silicon Mac** |
 | `Look4Sat-Mac-4.4.9-source.zip` | Full corresponding source archive: original Look4Sat modules plus `desktop-macos/` |
 | `Look4Sat-Mac.zip` (if available) | Alternative ZIP of the same application bundle, exported from macOS Finder |
 
@@ -38,12 +40,12 @@ See the [Releases page](https://github.com/z1000biker/maclook4sat/releases) for 
 
 ## Install on macOS
 
-1. Download `Look4Sat-Mac-4.4.9-Intel.zip` from [Releases](https://github.com/z1000biker/maclook4sat/releases).
+1. Download a ZIP for **your CPU architecture** from the [v4.4.9 Release](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc): `Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip` for M-series Macs; `Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip` or the earlier `Look4Sat-Mac-4.4.9-Intel.zip` for Intel Macs.
 2. Extract the ZIP and move `Look4Sat-Mac.app` to `/Applications`, if desired.
 3. Open `Look4Sat-Mac.app` from Finder. On systems that block unnotarized apps, inspect the app's origin first and use the normal macOS **Privacy & Security → Open Anyway** control only if you trust this experimental build.
 4. Enter your station latitude, longitude and altitude. Download orbital data or import TLE/OMM files, then select a satellite.
 
-The application is **not Apple-notarized**. Hardware integration and permissions depend on your macOS configuration. The available package is for Intel (`x86_64`) macOS; Apple Silicon support has not been verified.
+The application is **not Apple-notarized**. Both Intel (`x86_64`) and Apple Silicon (`arm64`) ZIP archives are available in the Release. **Neither new CI-generated archive has been independently tested on real Mac hardware; Apple Silicon runtime support has not been verified.** Hardware integration and permissions depend on your macOS configuration.
 
 ## What is implemented?
 
