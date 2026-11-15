@@ -43,9 +43,15 @@ tasks.register<Exec>("packageMac") {
     doLast {
         val app = layout.buildDirectory.dir("macos/Look4Sat-Mac.app").get().asFile
         val plist = File(app, "Contents/Info.plist")
-        check(ProcessBuilder("/usr/libexec/PlistBuddy", "-c",
-            "Set :NSMicrophoneUsageDescription Look4Sat decodes SSTV signals from your selected audio input.",
-            plist.absolutePath).inheritIO().start().waitFor() == 0)
+        val microphoneMessage = "Look4Sat decodes SSTV signals from your selected audio input."
+        val addUsage = ProcessBuilder("/usr/libexec/PlistBuddy", "-c",
+            "Add :NSMicrophoneUsageDescription string $microphoneMessage", plist.absolutePath)
+            .start().waitFor()
+        if (addUsage != 0) {
+            check(ProcessBuilder("/usr/libexec/PlistBuddy", "-c",
+                "Set :NSMicrophoneUsageDescription $microphoneMessage", plist.absolutePath)
+                .inheritIO().start().waitFor() == 0)
+        }
         check(ProcessBuilder("/usr/bin/codesign", "--force", "--deep", "--sign", "-", app.absolutePath)
             .inheritIO().start().waitFor() == 0)
     }
