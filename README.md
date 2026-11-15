@@ -14,8 +14,8 @@ Based on [Look4Sat 4.4.9 by rt-bishop](https://github.com/rt-bishop/Look4Sat). T
 
 | Runner | CPU architecture | CI result | Download |
 | --- | --- | --- | --- |
-| `macos-15-intel` | Intel `x86_64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc) in the Release |
-| `macos-15` | Apple Silicon `arm64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/tag/v4.4.9-macos-poc) in the Release |
+| `macos-15-intel` | Intel `x86_64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-poc/Look4Sat-Mac-4.4.9-Intel-CI-UNTESTED.zip) in the Release |
+| `macos-15` | Apple Silicon `arm64` | Build and offline checks passed | [`Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip`](https://github.com/z1000biker/maclook4sat/releases/download/v4.4.9-macos-poc/Look4Sat-Mac-4.4.9-AppleSilicon-CI-UNTESTED.zip) in the Release |
 
 **The Apple Silicon version has NOT been tested on an actual Apple Silicon Mac.** Successful compilation, offline regression checks, ad-hoc code signing and packaging do not establish correct runtime behavior, device compatibility or satellite-tracking accuracy. The new CI-generated Intel artifact has also not undergone independent hands-on validation. Both artifacts are experimental.
 
